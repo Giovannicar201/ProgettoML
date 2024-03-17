@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import LabelEncoder
 import seaborn as sns
 
 #Trasformazione del dataset da dataframe a CSV con aggiunta del nome delle colonne
@@ -81,6 +82,34 @@ for column in column_to_interest:
 
     # Chiudi la figura per liberare la memoria
     plt.close()
+
+# Copia il dataset per poter visualizzare i cambiamenti dopo l'encoding
+dataset_encoded = dataset.copy()
+
+# Inizializza una lista per memorizzare gli indici dei valori nulli
+nan_indices = []
+
+# Label encoding per le colonne categoriche
+for column in dataset_encoded.columns:
+    if dataset_encoded[column].dtype == 'object':  # Verifica se la colonna è di tipo object (categorica)
+        # Salva gli indici dei valori nulli
+        nan_indices = dataset_encoded[column][dataset_encoded[column].isna()].index.tolist()
+
+        # Esegui il Label Encoding
+        dataset_encoded[column] = LabelEncoder().fit_transform(dataset_encoded[column])
+
+# Ripristino dei valori nulli e conversione in tipo Int64
+for column in dataset_encoded.columns:
+    if dataset[column].dtype == 'object':  # Verifica se la colonna è di tipo object (categorica)
+        dataset_encoded.loc[nan_indices, column] = np.nan
+        dataset_encoded[column] = dataset_encoded[column].astype("Int64")
+
+# Visualizza il dataset prima e dopo l'encoding per comprendere le modifiche
+print("Dataset prima dell'encoding:")
+print(dataset.head())
+
+print("\nDataset dopo l'encoding:")
+print(dataset_encoded.head())
 
 #Calcolo delle correlazione del dataset
 # Trasforma la colonna 'diagnosis' in valori numerici (0 per 'B' e 1 per 'M')
