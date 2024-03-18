@@ -4,37 +4,118 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc
 import matplotlib.pyplot as plt
+from imblearn.over_sampling import SMOTE
 from matplotlib.colors import ListedColormap
 
-def train_and_evaluate(model, model_intial,X_train, X_test, y_train, y_test):
+def train_and_evaluate(model, model_initial, X_train, X_test, y_train, y_test):
+    # Addestramento del modello
     model.fit(X_train, y_train)
 
+    # Predizione sul training set e sul test set
     train_pred = model.predict(X_train)
     test_pred = model.predict(X_test)
 
-    accuracy_train = accuracy_score(y_true=y_train, y_pred=train_pred)
-    precision_train = precision_score(y_true=y_train, y_pred=train_pred,pos_label='M')
-    recall_train = recall_score(y_true=y_train, y_pred=train_pred,pos_label='M')
-    f1_train = f1_score(y_true=y_train, y_pred=train_pred,pos_label='M')
+    # Calcolo delle metriche di valutazione prima dell'oversampling
+    accuracy_train_before = accuracy_score(y_true=y_train, y_pred=train_pred)
+    precision_train_before = precision_score(y_true=y_train, y_pred=train_pred, pos_label='M')
+    recall_train_before = recall_score(y_true=y_train, y_pred=train_pred, pos_label='M')
+    f1_train_before = f1_score(y_true=y_train, y_pred=train_pred, pos_label='M')
 
-    accuracy_test = accuracy_score(y_true=y_test, y_pred=test_pred)
-    precision_test = precision_score(y_true=y_test, y_pred=test_pred,pos_label='M')
-    recall_test = recall_score(y_true=y_test, y_pred=test_pred,pos_label='M')
-    f1_test = f1_score(y_true=y_test, y_pred=test_pred,pos_label='M')
+    accuracy_test_before = accuracy_score(y_true=y_test, y_pred=test_pred)
+    precision_test_before = precision_score(y_true=y_test, y_pred=test_pred, pos_label='M')
+    recall_test_before = recall_score(y_true=y_test, y_pred=test_pred, pos_label='M')
+    f1_test_before = f1_score(y_true=y_test, y_pred=test_pred, pos_label='M')
 
+    # Applica l'oversampling con SMOTE
+    smote = SMOTE(random_state=42)
+    X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
+
+    # Calcola la distribuzione delle classi prima e dopo l'oversampling
+    class_distribution_before = y_train.value_counts(normalize=True)
+    class_distribution_after = y_train_resampled.value_counts(normalize=True)
+
+    # Visualizza graficamente la distribuzione delle classi
+    plt.figure(figsize=(10, 5))
+    plt.bar(class_distribution_before.index, class_distribution_before, color='skyblue', label='Before SMOTE')
+    plt.bar(class_distribution_after.index, class_distribution_after, color='blue', label='After SMOTE')
+    plt.title('Class Distribution Before and After SMOTE')
+    plt.xlabel('Class')
+    plt.ylabel('Proportion')
+    plt.xticks(class_distribution_before.index, ['Benign', 'Malignant'])
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(f"{model_initial}_class_distribution.png")
+    plt.close()
+
+    # Creazione del pie plot per la distribuzione delle classi
+    plt.figure(figsize=(6, 6))
+    labels = ['Benign', 'Malignant']
+    sizes = [y_train.value_counts()[0], y_train.value_counts()[1]]
+    colors = ['skyblue', 'blue']
+    explode = (0, 0.1)  # Esplosione della fetta "Malignant"
+    plt.pie(sizes, explode=explode, labels=labels, colors=colors, autopct="%0.2f", startangle=90, textprops={'fontsize': 11})
+    plt.axis('equal')  # Equalizza gli assi per ottenere un cerchio
+    plt.title('Class Distribution Before SMOTE')
+    plt.savefig(f"{model_initial}_class_distribution_pie.png")
+    plt.close()
+
+    # Creazione del pie plot per la distribuzione delle classi dopo l'oversampling
+    plt.figure(figsize=(6, 6))
+    labels = ['Benign', 'Malignant']
+    sizes = [y_train_resampled.value_counts()[0], y_train_resampled.value_counts()[1]]
+    colors = ['skyblue', 'blue']
+    explode = (0, 0.1)  # Esplosione della fetta "Malignant"
+    plt.pie(sizes, explode=explode, labels=labels, colors=colors,  autopct="%0.2f", startangle=90, textprops={'fontsize': 11})
+    plt.axis('equal')  # Equalizza gli assi per ottenere un cerchio
+    plt.title('Class Distribution After SMOTE')
+    plt.savefig(f"{model_initial}_class_distribution_pie_after_smote.png")
+    plt.close()
+
+    # Addestramento del modello sui dati oversampled
+    model.fit(X_train_resampled, y_train_resampled)
+
+    # Predizione sui dati oversampled
+    train_pred_resampled = model.predict(X_train_resampled)
+    test_pred_resampled = model.predict(X_test)
+
+    # Calcolo delle metriche di valutazione dopo l'oversampling
+    accuracy_train_after = accuracy_score(y_true=y_train_resampled, y_pred=train_pred_resampled)
+    precision_train_after = precision_score(y_true=y_train_resampled, y_pred=train_pred_resampled, pos_label='M')
+    recall_train_after = recall_score(y_true=y_train_resampled, y_pred=train_pred_resampled, pos_label='M')
+    f1_train_after = f1_score(y_true=y_train_resampled, y_pred=train_pred_resampled, pos_label='M')
+
+    accuracy_test_after = accuracy_score(y_true=y_test, y_pred=test_pred_resampled)
+    precision_test_after = precision_score(y_true=y_test, y_pred=test_pred_resampled, pos_label='M')
+    recall_test_after = recall_score(y_true=y_test, y_pred=test_pred_resampled, pos_label='M')
+    f1_test_after = f1_score(y_true=y_test, y_pred=test_pred_resampled, pos_label='M')
+
+    # Stampa delle metriche di valutazione prima e dopo l'oversampling
+    print("Metrics before oversampling:")
     print(f"Training\n"
-          f"Accuracy: {round(accuracy_train,2)}\n"
-          f"Precision: {round(precision_train,2)}\n"
-          f"recall: {round(recall_train,2)}\n"
-          f"F1: {round(f1_train,2)}")
-
+          f"Accuracy: {round(accuracy_train_before,2)}\n"
+          f"Precision: {round(precision_train_before,2)}\n"
+          f"Recall: {round(recall_train_before,2)}\n"
+          f"F1: {round(f1_train_before,2)}")
     print(f"Testing\n"
-          f"Accuracy: {round(accuracy_test,2)}\n"
-          f"Precision: {round(precision_test,2)}\n"
-          f"recall: {round(recall_test,2)}\n"
-          f"F1: {round(f1_test,2)}")
+          f"Accuracy: {round(accuracy_test_before,2)}\n"
+          f"Precision: {round(precision_test_before,2)}\n"
+          f"Recall: {round(recall_test_before,2)}\n"
+          f"F1: {round(f1_test_before,2)}")
 
-    save_evaluation_graphs(y_test, test_pred, model_intial)
+    print("\nMetrics after oversampling:")
+    print(f"Training\n"
+          f"Accuracy: {round(accuracy_train_after,2)}\n"
+          f"Precision: {round(precision_train_after,2)}\n"
+          f"Recall: {round(recall_train_after,2)}\n"
+          f"F1: {round(f1_train_after,2)}")
+    print(f"Testing\n"
+          f"Accuracy: {round(accuracy_test_after,2)}\n"
+          f"Precision: {round(precision_test_after,2)}\n"
+          f"Recall: {round(recall_test_after,2)}\n"
+          f"F1: {round(f1_test_after,2)}")
+
+    # Mostra la confusion matrix e la ROC curve dopo l'oversampling
+    save_evaluation_graphs(y_test, test_pred_resampled, model_initial)
 
 def save_evaluation_graphs(real_values, pred, model_initial):
     plt.close("all")
