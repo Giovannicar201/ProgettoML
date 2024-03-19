@@ -38,15 +38,21 @@ dataset_benign = dataset[dataset['diagnosis'] == 'B']
 column_to_plot=['diagnosis']
 
 for column in column_to_plot:
+    # Chiusura di tutte le figure "aperte" per evitare sovrapposizioni e visualizzazione distorta degli istogrammi
     plt.close("all")
+    # Inizializzazione di un array contenente tutti i valori che la colonna può assumere
     unique_values=dataset[column].unique()
+    # Inizializzazione di un array contenente valori da 0 al numero di valori della colonna, che corrisponderà al numero
+    # dei bins (barre verticali) contenuti nell'istogramma. Si sottrae 0.5 per centrare il bin rispetto all'etichetta
     bins=np.arange(len(unique_values)+1)-0.5
 
+    # Creazione dell'istogramma
     plt.hist([dataset_benign[column], dataset_malignant[column]], color=["skyblue", "blue"], edgecolor='black', alpha=0.8, stacked=True, rwidth=0.5, bins=bins)
 
     plt.xlabel(column)
     plt.ylabel("Frequency")
 
+    # Definizione della legenda dell'istogramma
     plt.legend(["Benign","Malignant"])
 
     # Salva l'istogramma come immagine
@@ -59,28 +65,21 @@ for column in column_to_plot:
 column_to_interest = ['radius1', 'texture1', 'perimeter1', 'area1', 'radius2', 'texture2', 'perimeter2', 'area2', 'radius3', 'texture3', 'perimeter3', 'area3']
 
 for column in column_to_interest:
-    # Chiusura di tutte le figure "aperte" per evitare sovrapposizioni e visualizzazione distorta degli istogrammi
     plt.close("all")
 
-    # Inizializzazione di un array contenente tutti i valori che la colonna può assumere
     unique_values = dataset[column].unique()
-    # Inizializzazione di un array contenente valori da 0 al numero di valori della colonna, che corrisponderà al numero
-    # dei bins (barre verticali) contenuti nell'istogramma. Si sottrae 0.5 per centrare il bin rispetto all'etichetta
     bins = np.arange(len(unique_values) + 1) - 0.5
 
-    # Creazione dell'istogramma
     plt.hist([dataset_benign[column], dataset_malignant[column]], color=["skyblue", "blue"], edgecolor='black', alpha=0.8, stacked=True, rwidth=0.5, bins=30)
 
     # Definizione delle etichette presenti sull'asse x e sull'asse y dell'istogramma
     plt.xlabel(column.replace('-', ' ').capitalize())
     plt.ylabel("Frequenza")
-    # Definizione della legenda dell'istogramma
+
     plt.legend(["Benign","Malignant"])
 
-    # Salva l'istogramma come immagine
     plt.savefig(f"{column}_histogram.png")
 
-    # Chiudi la figura per liberare la memoria
     plt.close()
 
 # Copia il dataset per poter visualizzare i cambiamenti dopo l'encoding
@@ -106,10 +105,10 @@ for column in dataset_encoded.columns:
 
 # Visualizza il dataset prima e dopo l'encoding per comprendere le modifiche
 print("Dataset prima dell'encoding:")
-print(dataset.head())
+print(dataset)
 
 print("\nDataset dopo l'encoding:")
-print(dataset_encoded.head())
+print(dataset_encoded)
 
 #Calcolo delle correlazione del dataset
 # Trasforma la colonna 'diagnosis' in valori numerici (0 per 'B' e 1 per 'M')

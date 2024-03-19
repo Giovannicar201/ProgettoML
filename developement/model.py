@@ -26,6 +26,9 @@ def train_and_evaluate(model, model_initial, X_train, X_test, y_train, y_test):
     recall_test_before = recall_score(y_true=y_test, y_pred=test_pred, pos_label='M')
     f1_test_before = f1_score(y_true=y_test, y_pred=test_pred, pos_label='M')
 
+    # Salva le curve prima dell'oversampling
+    save_evaluation_graphs(y_test, test_pred, model_initial + '_before_smote')
+
     # Applica l'oversampling con SMOTE
     smote = SMOTE(random_state=42)
     X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
@@ -90,7 +93,7 @@ def train_and_evaluate(model, model_initial, X_train, X_test, y_train, y_test):
     f1_test_after = f1_score(y_true=y_test, y_pred=test_pred_resampled, pos_label='M')
 
     # Stampa delle metriche di valutazione prima e dopo l'oversampling
-    print("Metrics before oversampling:")
+    print(f"{model_initial} Metrics before oversampling:")
     print(f"Training\n"
           f"Accuracy: {round(accuracy_train_before,2)}\n"
           f"Precision: {round(precision_train_before,2)}\n"
@@ -102,7 +105,7 @@ def train_and_evaluate(model, model_initial, X_train, X_test, y_train, y_test):
           f"Recall: {round(recall_test_before,2)}\n"
           f"F1: {round(f1_test_before,2)}")
 
-    print("\nMetrics after oversampling:")
+    print(f"\n{model_initial} Metrics after oversampling:")
     print(f"Training\n"
           f"Accuracy: {round(accuracy_train_after,2)}\n"
           f"Precision: {round(precision_train_after,2)}\n"
